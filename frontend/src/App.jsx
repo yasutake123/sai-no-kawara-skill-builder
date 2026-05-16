@@ -15,13 +15,21 @@ function App() {
   };
 
   const callOni = () => {
-    setStones(prevStones => prevStones
+    const nextStones = stones
       .map(stone => {
         const damage = Math.floor(20 / (stone.reviewCount + 1));
         return {...stone, hp: stone.hp - damage};
       })
-      .filter(stone => stone.hp > 0)
-    );
+      .filter(stone => stone.hp > 0);
+    setStones(nextStones);
+
+    if (!selectedStone) return;
+    if (nextStones.some(stone => stone.id === selectedStone.id)) {
+      const damage = Math.floor(20 / (selectedStone.reviewCount + 1));
+      setSelectedStone({...selectedStone, hp: selectedStone.hp - damage})
+    } else {
+      setSelectedStone(null);
+    }
   };
 
   const repairStone = (e, id) => {
