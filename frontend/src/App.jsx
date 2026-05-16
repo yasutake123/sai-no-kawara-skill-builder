@@ -8,8 +8,8 @@ function App() {
     const newStone = {
       id: Date.now(),
       name: languageName,
-      hp : 100,
-      reviewCount : 0
+      hp: 100,
+      reviewCount: 0
     };
     setStones([...stones, newStone]);
   };
