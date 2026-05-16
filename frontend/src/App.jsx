@@ -32,6 +32,10 @@ function App() {
         ? { ...stone, hp: 100, reviewCount: stone.reviewCount + 1 }
         : stone
     ));
+
+    if (selectedStone && selectedStone.id === id) {
+      setSelectedStone({...selectedStone, hp: 100, reviewCount: selectedStone.reviewCount + 1});
+    }
   }
 
   return (
