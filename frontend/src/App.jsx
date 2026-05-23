@@ -4,6 +4,10 @@ function App() {
   const [stones, setStones] = useState([]);
   const [selectedStone, setSelectedStone] = useState(null);
 
+  React.useEffect(() => {
+    localStorage.setItem('sai_no_kawara_stone',JSON.stringify(stones));
+  }, [stones]);
+
   const addStone = (languageName) => {
     const newStone = {
       id: Date.now(),
