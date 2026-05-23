@@ -144,7 +144,42 @@ function App() {
               <p>ID: {selectedStone.id}</p>
               <p><strong>現在の耐久値：{selectedStone.hp}%</strong></p>
               <p><strong>復習回数：{selectedStone.reviewCount}回</strong></p>
-              <p>💡 (フェーズ2でここに忘却曲線と芝生が出ます)</p>
+
+              {/* 芝生 */}
+              <div style={{ marginTop: '20px', borderTop:'1px solid #eee', paddingTop:'15px'}}>
+                <h5>🌿 復習の記録</h5>
+                <div style={{display: 'flex', gap: '4px', marginTop: '10px'}}>
+                  {
+                    [6,5,4,3,2,1,0].map(dayOffset => {
+                      const d =new Date();
+                      const targetDate = new Date(d.getTime() - dayOffset * 24 * 60 * 60 * 1000);
+                      // d.setDate(d.getDate - dayOffset);
+                      // const dateStr = d.toISOString().split('T')[0];
+                      const year = targetDate.getFullYear();
+                      const month = String(targetDate.getMonth() + 1).padStart(2,'0');
+                      const day = String(targetDate.getDate()).padStart(2,'0');
+                      const dateStr = `${year}-${month}-${day}`;
+
+                      const isReviewed = selectedStone.reviewedDates && selectedStone.reviewedDates.includes(dateStr);
+
+                      return (
+                        <div
+                          key={dateStr}
+                          title={dateStr}
+                          style={{
+                            width: '20px',
+                            height: '20px',
+                            backgroundColor: isReviewed ?'#2ecc71' :'#ededf0',
+                            borderRadius: '3px',
+                            border: '1px solid rgba(27,31,35,0.06)',
+                            transition: 'background-color 0.3s'
+                          }}
+                        />
+                      );
+                    })
+                  }
+                </div>
+              </div>
             </div>
         )}
       </div>
