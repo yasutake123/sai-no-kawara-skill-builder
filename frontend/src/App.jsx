@@ -1,11 +1,14 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 
 function App() {
-  const [stones, setStones] = useState([]);
+  const [stones, setStones] = useState(() => {
+    const saveStones = localStorage.getItem('sai_no_kawara_stones');
+    return saveStones? JSON.parse(saveStones) : [];
+  });
   const [selectedStone, setSelectedStone] = useState(null);
 
   React.useEffect(() => {
-    localStorage.setItem('sai_no_kawara_stone',JSON.stringify(stones));
+    localStorage.setItem('sai_no_kawara_stones',JSON.stringify(stones));
   }, [stones]);
 
   const addStone = (languageName) => {
