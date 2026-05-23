@@ -16,7 +16,8 @@ function App() {
       id: Date.now(),
       name: languageName,
       hp: 100,
-      reviewCount: 0
+      reviewCount: 0,
+      reviewedDates:[]
     };
     setStones([...stones, newStone]);
   };
@@ -42,14 +43,25 @@ function App() {
   const repairStone = (e, id) => {
     e.stopPropagation();
 
+    const today = new Date().toISOString().split(`T`)[0];
     setStones(stones.map(stone => 
       stone.id === id 
-        ? { ...stone, hp: 100, reviewCount: stone.reviewCount + 1 }
+        ? {
+            ...stone,
+            hp: 100,
+            reviewCount: stone.reviewCount + 1,
+            reviewedDates: [...stone.reviewedDates, today]
+          }
         : stone
     ));
 
     if (selectedStone && selectedStone.id === id) {
-      setSelectedStone({...selectedStone, hp: 100, reviewCount: selectedStone.reviewCount + 1});
+      setSelectedStone({
+        ...selectedStone,
+        hp: 100,
+        reviewCount: selectedStone.reviewCount + 1,
+        reviewedDates: [...(selectedStone.reviewedDates || [], today)]
+      });
     }
   }
 
