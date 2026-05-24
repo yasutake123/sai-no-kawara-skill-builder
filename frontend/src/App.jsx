@@ -23,18 +23,18 @@ function App() {
   };
 
   const callOni = () => {
-    const nextStones = stones
-      .map(stone => {
+    const nextStones = stones.map(stone => {
         const damage = Math.floor(20 / (stone.reviewCount + 1));
-        return {...stone, hp: stone.hp - damage};
-      })
-      .filter(stone => stone.hp > 0);
+        const newHP = Math.max(0, stone.hp - damage);
+        return {...stone, hp: newHP};
+      });
+      // .filter(stone => stone.hp > 0);
     setStones(nextStones);
 
     if (!selectedStone) return;
-    if (nextStones.some(stone => stone.id === selectedStone.id)) {
-      const damage = Math.floor(20 / (selectedStone.reviewCount + 1));
-      setSelectedStone({...selectedStone, hp: selectedStone.hp - damage})
+    const targetStone = nextStones.find(stone => stone.id === selectedStone.id);
+    if (targetStone) {
+      setSelectedStone(targetStone);
     } else {
       setSelectedStone(null);
     }
@@ -106,8 +106,12 @@ function App() {
 
         {stones.length === 0 
         ? (<p>河原には何もありません。石を積みましょう。</p>)
-        : (stones.map(stone => (
+        : (stones.map(stone => {
+          const isDead = stone.hp <= 0;
+          const stoneClass = `stone-item ${isDead ? 'stone-crumble' : ''}`;
+          return (
           <div key={stone.id}
+            className={stoneClass}
             onClick={() => setSelectedStone(stone)}
             style={{
               width: '200px',
@@ -116,7 +120,8 @@ function App() {
               border: '2px solid #7f8c8d',
               borderRadius: '8px',
               cursor: 'pointer',
-              opacity: stone.hp / 100
+              opacity: stone.hp / 100,
+              transition: 'all 0.3s ease'
             }}
           >
             🪨 <strong>{stone.name}</strong>
@@ -129,7 +134,7 @@ function App() {
               復習する
             </button>
           </div>
-        )))}
+        )}))}
       </div>
 
       {/* 右サイドバー：詳細情報 */}
