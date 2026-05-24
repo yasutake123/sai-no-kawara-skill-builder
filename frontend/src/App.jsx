@@ -1,32 +1,41 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
+import './App.css';
 
 function App() {
-  const [stones, setStones] = useState([]);
+  const [stones, setStones] = useState(() => {
+    const saveStones = localStorage.getItem('sai_no_kawara_stones');
+    return saveStones? JSON.parse(saveStones) : [];
+  });
   const [selectedStone, setSelectedStone] = useState(null);
+
+  React.useEffect(() => {
+    localStorage.setItem('sai_no_kawara_stones',JSON.stringify(stones));
+  }, [stones]);
 
   const addStone = (languageName) => {
     const newStone = {
       id: Date.now(),
       name: languageName,
       hp: 100,
-      reviewCount: 0
+      reviewCount: 0,
+      reviewedDates:[]
     };
     setStones([...stones, newStone]);
   };
 
   const callOni = () => {
-    const nextStones = stones
-      .map(stone => {
+    const nextStones = stones.map(stone => {
         const damage = Math.floor(20 / (stone.reviewCount + 1));
-        return {...stone, hp: stone.hp - damage};
-      })
-      .filter(stone => stone.hp > 0);
+        const newHP = Math.max(0, stone.hp - damage);
+        return {...stone, hp: newHP};
+      });
+      // .filter(stone => stone.hp > 0);
     setStones(nextStones);
 
     if (!selectedStone) return;
-    if (nextStones.some(stone => stone.id === selectedStone.id)) {
-      const damage = Math.floor(20 / (selectedStone.reviewCount + 1));
-      setSelectedStone({...selectedStone, hp: selectedStone.hp - damage})
+    const targetStone = nextStones.find(stone => stone.id === selectedStone.id);
+    if (targetStone) {
+      setSelectedStone(targetStone);
     } else {
       setSelectedStone(null);
     }
@@ -35,14 +44,25 @@ function App() {
   const repairStone = (e, id) => {
     e.stopPropagation();
 
+    const today = new Date().toISOString().split(`T`)[0];
     setStones(stones.map(stone => 
       stone.id === id 
-        ? { ...stone, hp: 100, reviewCount: stone.reviewCount + 1 }
+        ? {
+            ...stone,
+            hp: 100,
+            reviewCount: stone.reviewCount + 1,
+            reviewedDates: [...stone.reviewedDates, today]
+          }
         : stone
     ));
 
     if (selectedStone && selectedStone.id === id) {
-      setSelectedStone({...selectedStone, hp: 100, reviewCount: selectedStone.reviewCount + 1});
+      setSelectedStone({
+        ...selectedStone,
+        hp: 100,
+        reviewCount: selectedStone.reviewCount + 1,
+        reviewedDates: [...(selectedStone.reviewedDates || [], today)]
+      });
     }
   }
 
@@ -87,8 +107,12 @@ function App() {
 
         {stones.length === 0 
         ? (<p>河原には何もありません。石を積みましょう。</p>)
-        : (stones.map(stone => (
+        : (stones.map(stone => {
+          const isDead = stone.hp <= 0;
+          const stoneClass = `stone-item ${isDead ? 'stone-crumble' : ''}`;
+          return (
           <div key={stone.id}
+            className={stoneClass}
             onClick={() => setSelectedStone(stone)}
             style={{
               width: '200px',
@@ -97,7 +121,8 @@ function App() {
               border: '2px solid #7f8c8d',
               borderRadius: '8px',
               cursor: 'pointer',
-              opacity: stone.hp / 100
+              opacity: stone.hp / 100,
+              transition: 'all 0.3s ease'
             }}
           >
             🪨 <strong>{stone.name}</strong>
@@ -110,7 +135,7 @@ function App() {
               復習する
             </button>
           </div>
-        )))}
+        )}))}
       </div>
 
       {/* 右サイドバー：詳細情報 */}
@@ -125,7 +150,42 @@ function App() {
               <p>ID: {selectedStone.id}</p>
               <p><strong>現在の耐久値：{selectedStone.hp}%</strong></p>
               <p><strong>復習回数：{selectedStone.reviewCount}回</strong></p>
-              <p>💡 (フェーズ2でここに忘却曲線と芝生が出ます)</p>
+
+              {/* 芝生 */}
+              <div style={{ marginTop: '20px', borderTop:'1px solid #eee', paddingTop:'15px'}}>
+                <h5>🌿 復習の記録</h5>
+                <div style={{display: 'flex', gap: '4px', marginTop: '10px'}}>
+                  {
+                    [6,5,4,3,2,1,0].map(dayOffset => {
+                      const d =new Date();
+                      const targetDate = new Date(d.getTime() - dayOffset * 24 * 60 * 60 * 1000);
+                      // d.setDate(d.getDate - dayOffset);
+                      // const dateStr = d.toISOString().split('T')[0];
+                      const year = targetDate.getFullYear();
+                      const month = String(targetDate.getMonth() + 1).padStart(2,'0');
+                      const day = String(targetDate.getDate()).padStart(2,'0');
+                      const dateStr = `${year}-${month}-${day}`;
+
+                      const isReviewed = selectedStone.reviewedDates && selectedStone.reviewedDates.includes(dateStr);
+
+                      return (
+                        <div
+                          key={dateStr}
+                          title={dateStr}
+                          style={{
+                            width: '20px',
+                            height: '20px',
+                            backgroundColor: isReviewed ?'#2ecc71' :'#ededf0',
+                            borderRadius: '3px',
+                            border: '1px solid rgba(27,31,35,0.06)',
+                            transition: 'background-color 0.3s'
+                          }}
+                        />
+                      );
+                    })
+                  }
+                </div>
+              </div>
             </div>
         )}
       </div>
